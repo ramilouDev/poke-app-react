@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, SyntheticEvent } from 'react';
 import {
   Card,
   CardContent,
@@ -22,11 +22,11 @@ interface PokemonCardProps {
 export const PokemonCard = ({ pokemon, variant = 'grid' }: PokemonCardProps) => {
   const [shinyModalOpen, setShinyModalOpen] = useState(false);
 
-  const hasShiny = !!pokemon.sprites.front_shiny;
+  const hasShiny = !!pokemon.sprites.front_shiny || !!pokemon.sprites.other?.['official-artwork']?.front_shiny;
   const officialArtwork = pokemon.sprites.other['official-artwork'].front_default;
 
   const shinyImages = [
-    pokemon.sprites.other['official-artwork'].front_shiny,
+    pokemon.sprites.other?.['official-artwork']?.front_shiny,
     pokemon.sprites.front_shiny,
     pokemon.sprites.back_shiny,
   ].filter(Boolean) as string[];
@@ -67,14 +67,22 @@ export const PokemonCard = ({ pokemon, variant = 'grid' }: PokemonCardProps) => 
         {hasShiny && (
           <Dialog
             open={shinyModalOpen}
-            onClose={() => setShinyModalOpen(false)}
+            onClose={(event: SyntheticEvent) => {
+              if (event) {
+                event.stopPropagation();
+              }
+              setShinyModalOpen(false);
+            }}
             maxWidth="md"
             fullWidth
           >
             <DialogContent>
               <Box sx={{ position: 'relative' }}>
                 <IconButton
-                  onClick={() => setShinyModalOpen(false)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShinyModalOpen(false);
+                  }}
                   sx={{
                     position: 'absolute',
                     right: 0,
@@ -148,84 +156,109 @@ export const PokemonCard = ({ pokemon, variant = 'grid' }: PokemonCardProps) => 
             p: 2,
           }}
         />
-        <CardContent sx={{ flexGrow: 1 }}>
+        <CardContent sx={{ flexGrow: 1, p: 2 }}>
           <Typography
             variant="h6"
             component="h2"
-            gutterBottom
             sx={{
               textTransform: 'capitalize',
               fontWeight: 'bold',
+              mb: 1,
+              textAlign: 'center'
             }}
           >
             {pokemon.name}
           </Typography>
 
-          <Typography variant="body2" color="text.secondary" gutterBottom>
-            #{pokemon.id.toString().padStart(3, '0')}
-          </Typography>
-
-          <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mb: 1 }}>
-            {pokemon.types.map((type) => (
-              <Chip
-                key={type.type.name}
-                label={type.type.name}
-                size="small"
-                sx={{
-                  backgroundColor: TYPE_COLORS[type.type.name] || '#777',
-                  color: '#fff',
-                  fontWeight: 'bold',
-                  textTransform: 'capitalize',
-                }}
-              />
-            ))}
-          </Box>
-
-          <Box sx={{ mt: 2 }}>
-            <Typography variant="body2" color="text.secondary">
-              Height: {pokemon.height / 10}m
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Weight: {pokemon.weight / 10}kg
-            </Typography>
-          </Box>
-
-          {hasShiny && (
-            <Box sx={{ mt: 2 }}>
-              <Chip
-                icon={<AutoAwesome />}
-                label="Shiny"
-                size="small"
-                onClick={() => setShinyModalOpen(true)}
-                sx={{
-                  boxShadow: 'var(--shiny-glow)',
-                  animation: 'pulse 2s infinite',
-                  background: 'linear-gradient(135deg, #ffd700, #ffed4e)',
-                  color: '#000',
-                  fontWeight: 'bold',
-                  cursor: 'pointer',
-                  '&:hover': {
-                    transform: 'scale(1.05)',
-                  },
-                  transition: 'transform 0.2s',
-                }}
-              />
+          <Box sx={{ mt: 4 }}>
+            <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', justifyContent: 'center' }}>
+              {pokemon.abilities.slice(0, 2).map((ability, index) => (
+                <Chip
+                  key={index}
+                  label={ability.ability.name}
+                  size="small"
+                  variant={ability.is_hidden ? "outlined" : "filled"}
+                  sx={{
+                    backgroundColor: ability.is_hidden ? 'transparent' : 'primary.main',
+                    color: ability.is_hidden ? 'primary.main' : 'white',
+                    fontWeight: 'bold',
+                    textTransform: 'capitalize',
+                    fontSize: '0.7rem',
+                  }}
+                />
+              ))}
             </Box>
-          )}
+          </Box>
+
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 4 }}>
+            <Box sx={{ flex: 1 }}>
+              <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+                {pokemon.types.map((type) => (
+                  <Chip
+                    key={type.type.name}
+                    label={type.type.name}
+                    size="small"
+                    sx={{
+                      backgroundColor: TYPE_COLORS[type.type.name] || '#777',
+                      color: '#fff',
+                      fontWeight: 'bold',
+                      textTransform: 'capitalize',
+                      fontSize: '0.7rem',
+                    }}
+                  />
+                ))}
+              </Box>
+            </Box>
+            
+            {hasShiny && (
+              <Box sx={{ ml: 1, flexShrink: 0, alignSelf: 'flex-end' }}>
+                <Chip
+                  icon={<AutoAwesome />}
+                  label="Shiny"
+                  size="small"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    console.log('shiny button clicked!!!');
+                    setShinyModalOpen(true);
+                  }}
+                  sx={{
+                    boxShadow: 'var(--shiny-glow)',
+                    animation: 'pulse 2s infinite',
+                    background: 'linear-gradient(135deg, #ffd700, #ffed4e)',
+                    color: '#000',
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    '&:hover': {
+                      transform: 'scale(1.05)',
+                    },
+                    transition: 'transform 0.2s',
+                  }}
+                />
+              </Box>
+            )}
+          </Box>
         </CardContent>
       </Card>
 
       {hasShiny && (
         <Dialog
           open={shinyModalOpen}
-          onClose={() => setShinyModalOpen(false)}
+          onClose={(event: SyntheticEvent) => {
+            if (event) {
+              event.stopPropagation();
+            }
+            setShinyModalOpen(false);
+          }}
           maxWidth="md"
           fullWidth
         >
           <DialogContent>
             <Box sx={{ position: 'relative' }}>
               <IconButton
-                onClick={() => setShinyModalOpen(false)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShinyModalOpen(false);
+                }}
                 sx={{
                   position: 'absolute',
                   right: 0,
@@ -240,31 +273,37 @@ export const PokemonCard = ({ pokemon, variant = 'grid' }: PokemonCardProps) => 
                 {pokemon.name} - Shiny Forms
               </Typography>
 
-              <Box
-                sx={{
-                  display: 'grid',
-                  gridTemplateColumns: {
-                    xs: '1fr',
-                    sm: 'repeat(2, 1fr)',
-                    md: 'repeat(3, 1fr)',
-                  },
-                  gap: 2,
-                }}
-              >
-                {shinyImages.map((img, index) => (
-                  <Box
-                    key={index}
-                    component="img"
-                    src={img}
-                    alt={`${pokemon.name} shiny ${index + 1}`}
-                    sx={{
-                      width: '100%',
-                      height: 'auto',
-                      filter: 'drop-shadow(0 0 10px rgba(255, 215, 0, 0.6))',
-                    }}
-                  />
-                ))}
-              </Box>
+              {shinyImages.length > 0 ? (
+                <Box
+                  sx={{
+                    display: 'grid',
+                    gridTemplateColumns: {
+                      xs: '1fr',
+                      sm: 'repeat(2, 1fr)',
+                      md: 'repeat(3, 1fr)',
+                    },
+                    gap: 2,
+                  }}
+                >
+                  {shinyImages.map((img, index) => (
+                    <Box
+                      key={index}
+                      component="img"
+                      src={img}
+                      alt={`${pokemon.name} shiny ${index + 1}`}
+                      sx={{
+                        width: '100%',
+                        height: 'auto',
+                        filter: 'drop-shadow(0 0 10px rgba(255, 215, 0, 0.6))',
+                      }}
+                    />
+                  ))}
+                </Box>
+              ) : (
+                <Typography variant="body1" color="text.secondary" textAlign="center">
+                  No hay versiones shiny disponibles para este Pokémon.
+                </Typography>
+              )}
             </Box>
           </DialogContent>
         </Dialog>

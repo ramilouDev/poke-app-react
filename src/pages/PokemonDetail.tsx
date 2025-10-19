@@ -296,6 +296,7 @@ const MoveDetails = ({ moveName }: { moveName: string }) => {
               color: '#fff',
               fontWeight: 'bold',
               textTransform: 'capitalize',
+              marginLeft: 1,
             }}
           />
         </Box>

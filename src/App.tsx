@@ -6,7 +6,9 @@ import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
 import { store } from '@/store/store';
 import { Index } from '@/pages/Index';
 import { PokemonDetail } from '@/pages/PokemonDetail';
+import { Login } from '@/pages/Login';
 import { NotFound } from '@/pages/NotFound';
+import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { QUERY_RETRY } from '@/utils/constants';
 
 const queryClient = new QueryClient({
@@ -41,8 +43,23 @@ function App() {
           <CssBaseline />
           <Router>
             <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/pokemon/:name" element={<PokemonDetail />} />
+              <Route path="/login" element={<Login />} />
+              <Route 
+                path="/" 
+                element={
+                  <ProtectedRoute>
+                    <Index />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/pokemon/:name" 
+                element={
+                  <ProtectedRoute>
+                    <PokemonDetail />
+                  </ProtectedRoute>
+                } 
+              />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Router>
