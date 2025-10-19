@@ -4,6 +4,9 @@ Una aplicación web moderna de Pokédex construida con React, TypeScript, Materi
 
 ## Instalación
 
+## APP Demo en Cloudflare
+https://poke-app-react.pages.dev/
+
 ```bash
 # Instalar dependencias
 npm install
